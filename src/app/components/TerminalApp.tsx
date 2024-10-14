@@ -1,4 +1,5 @@
-"use client";
+import React from "react";
+("use client");
 
 import { useState, useEffect, useRef } from "react";
 import { Terminal } from "lucide-react";
