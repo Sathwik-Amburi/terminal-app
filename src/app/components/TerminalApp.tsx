@@ -1,7 +1,10 @@
-import React from "react";
-("use client");
-
-import { useState, useEffect, useRef } from "react";
+import React, {
+  useState,
+  useEffect,
+  useRef,
+  useCallback,
+  useMemo,
+} from "react";
 import { Terminal } from "lucide-react";
 
 export default function TerminalApp() {
@@ -14,41 +17,41 @@ export default function TerminalApp() {
   const [hasBeenMoved, setHasBeenMoved] = useState(false);
   const terminalRef = useRef<HTMLDivElement>(null);
 
-  // Define icon size as a percentage of the window size
-  const iconSizePercent = { width: 5, height: 5 };
+  // Define icon size as a percentage of the window size using useMemo
+  const iconSizePercent = useMemo(() => ({ width: 5, height: 5 }), []);
   const [iconSize, setIconSize] = useState({ width: 0, height: 0 });
 
-  useEffect(() => {
-    const handleResize = () => {
-      if (terminalRef.current) {
-        const rect = terminalRef.current.getBoundingClientRect();
-        const newIconSize = {
-          width: (rect.width * iconSizePercent.width) / 100,
-          height: (rect.height * iconSizePercent.height) / 100,
-        };
-        setIconSize(newIconSize);
+  const handleResize = useCallback(() => {
+    if (terminalRef.current) {
+      const rect = terminalRef.current.getBoundingClientRect();
+      const newIconSize = {
+        width: (rect.width * iconSizePercent.width) / 100,
+        height: (rect.height * iconSizePercent.height) / 100,
+      };
+      setIconSize(newIconSize);
 
-        if (!hasBeenMoved) {
-          setIconPosition({
-            x: rect.width - newIconSize.width,
-            y: rect.height - newIconSize.height,
-          });
-        } else {
-          // If the icon was previously moved, reset its position to the corner
-          setIconPosition({
-            x: rect.width - newIconSize.width,
-            y: rect.height - newIconSize.height,
-          });
-          setHasBeenMoved(false);
-        }
+      if (!hasBeenMoved) {
+        setIconPosition({
+          x: rect.width - newIconSize.width,
+          y: rect.height - newIconSize.height,
+        });
+      } else {
+        // If the icon was previously moved, reset its position to the corner
+        setIconPosition({
+          x: rect.width - newIconSize.width,
+          y: rect.height - newIconSize.height,
+        });
+        setHasBeenMoved(false);
       }
-    };
+    }
+  }, [hasBeenMoved, iconSizePercent]);
 
+  useEffect(() => {
     window.addEventListener("resize", handleResize);
     handleResize();
 
     return () => window.removeEventListener("resize", handleResize);
-  }, [hasBeenMoved]);
+  }, [handleResize]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -57,7 +60,7 @@ export default function TerminalApp() {
     setInput("");
   };
 
-  const processCommand = (cmd: string) => {
+  const processCommand = (cmd: string): string => {
     const command = cmd.trim().toLowerCase();
     switch (command) {
       case "help":
@@ -75,7 +78,7 @@ export default function TerminalApp() {
     }
   };
 
-  const handleMouseDown = (e: React.MouseEvent) => {
+  const handleMouseDown = () => {
     setIsDragging(true);
     setHasBeenMoved(true);
   };
